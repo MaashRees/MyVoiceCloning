@@ -9,7 +9,7 @@ Ce projet permet de cloner une voix à partir d'un échantillon audio de 6 à 10
 
 ## 🛠️ Installation
 
-1. **Prérequis** : Python 3.9+ et [FFmpeg](https://ffmpeg.org/).
+1. **Prérequis** : Python 3.10 ou 3.11, pas 3.12(conflit avec la librairie TTS) et [FFmpeg](https://ffmpeg.org/).
 2. **Cloner le repo** :
    ```bash
    git clone [https://github.com/ton-pseudo/mon-clonage-vocal.git](https://github.com/ton-pseudo/mon-clonage-vocal.git)
