@@ -30,8 +30,9 @@ def test_run_works_with_and_without_running_loop():
 
 def test_backends():
     assert get_backend("edge").supports_cloning is False
-    with pytest.raises(NotImplementedError):
-        get_backend("chatterbox")
+    chatterbox = get_backend("chatterbox")  # import paresseux : torch n'est pas requis ici
+    assert chatterbox.supports_cloning and not chatterbox.sends_data_off_machine
+    assert get_backend("remote").sends_data_off_machine
     with pytest.raises(ValueError):
         get_backend("nope")
 
@@ -42,7 +43,7 @@ def test_cli_help_and_unknown_backend():
     assert result.exit_code == 0
     for command in ("record-ref", "check-ref", "transcribe", "translate", "say", "devices"):
         assert command in result.output
-    bad = runner.invoke(app, ["say", "salut", "--backend", "chatterbox"])
+    bad = runner.invoke(app, ["say", "salut", "--backend", "nope"])
     assert bad.exit_code == 1
 
 

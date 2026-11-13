@@ -36,7 +36,15 @@ class Settings(BaseSettings):
     translate_model: str | None = None
 
     # --- Synthèse vocale ---
+    # edge (brouillon, sans clonage) | chatterbox (local, GPU) | remote (serveur GPU distant)
     tts_backend: str = "edge"
+    chatterbox_device: str = "auto"  # auto | cuda | cpu | mps
+    chatterbox_model: str = "v3"  # modèle multilingue : v3 (recommandé) ou v2
+
+    # --- Serveur GPU distant (Colab, Space Hugging Face, VPS GPU) ---
+    remote_url: str | None = None  # ex. https://xxxx.gradio.live ou owner/space
+    remote_auth: str | None = None  # « utilisateur:motdepasse » si le serveur est protégé
+    remote_hf_token: str | None = None  # pour un Space privé
 
     @property
     def voices_dir(self) -> Path:

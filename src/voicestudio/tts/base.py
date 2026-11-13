@@ -17,6 +17,8 @@ class TTSBackend(Protocol):
     sends_data_off_machine: bool
     #: True si le moteur sait imiter une voix à partir d'un extrait.
     supports_cloning: bool
+    #: True si le moteur sait aussi faire du voice-to-voice (méthode ``convert``).
+    supports_conversion: bool
 
     def synthesize(
         self,

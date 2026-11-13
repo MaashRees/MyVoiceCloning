@@ -3,9 +3,10 @@
 Outil pour enregistrer sa voix, transcrire, traduire et générer des voix off (vidéos de voyage,
 scénarios de shooting...).
 
-> **Statut : refonte en cours (étape 1 sur 3).**
-> Les fondations sont prêtes et testées. Le **clonage de voix lui-même n'est pas encore branché** :
-> il arrive à l'étape 2 (voir la feuille de route).
+> **Statut : refonte en cours (étape 2 sur 3).**
+> Le code du clonage de voix et du mixage vidéo est écrit et testé **avec un faux moteur**.
+> **Le vrai modèle (Chatterbox) n'a pas encore été exécuté** : je n'avais pas de GPU pour le
+> tester. Le premier essai sur Colab ou Hugging Face est l'étape de validation qui reste.
 
 ## Ce qui fonctionne aujourd'hui
 
@@ -17,8 +18,13 @@ scénarios de shooting...).
 | `voicestudio transcribe video.mp4 --srt sous-titres.srt` | Transcription Whisper et sous-titres | **oui** (CPU ou GPU) |
 | `voicestudio translate "texte" --from fr --to en` | Traduction par un LLM | **non** : le texte part vers l'API que vous configurez |
 | `voicestudio say "texte"` | Voix de brouillon **sans clonage** (Edge-TTS) | **non** : le texte part chez Microsoft |
+| `voicestudio say "texte" --voice moi --backend remote` | **Voix clonée** sur un serveur GPU | **non** : texte et extrait de voix partent vers votre serveur |
+| `voicestudio voiceover clip.mp4 script.txt --voice moi` | Génère la voix et l'ajoute à la vidéo (volume normalisé à -14 LUFS, vidéo non ré-encodée) | dépend du moteur |
+| `voicestudio convert prise.wav --voice moi` | Voice-to-voice : garde votre intonation, prend votre timbre | idem |
+| `voicestudio voices` | Liste vos profils de voix | oui |
+| `voicestudio serve` | Lance le serveur de clonage (sur la machine GPU) | — |
 
-Seuls la capture audio, l'analyse et Whisper sont réellement locaux.
+Seuls la capture audio, l'analyse, Whisper et le mixage vidéo sont toujours locaux.
 
 ## Installation
 
@@ -38,6 +44,24 @@ cp .env.example .env               # puis adaptez-le
 - Windows : rien de plus à installer pour le micro.
 - Sans les extras, l'outil reste utilisable pour `translate`, `say` et `check-ref`.
 
+## Cloner sa voix : où fait-on tourner le modèle ?
+
+Le PC n'a pas besoin de GPU : le modèle tourne sur un serveur, votre PC l'appelle.
+
+| Où | Comment |
+|---|---|
+| **Google Colab** (GPU gratuit, session temporaire) | Ouvrez `notebooks/colab_server.ipynb`, exécutez les cellules, copiez l'URL et le mot de passe dans `.env`. |
+| **Space Hugging Face** (privé) | Voir `deploy/hf_space/README.md`. |
+| **Serveur Ubuntu avec GPU** | `pip install -e ".[server]"` + Chatterbox, puis `voicestudio serve --auth moi:motdepasse`. |
+
+Puis, dans `.env` : `VOICESTUDIO_TTS_BACKEND=remote` et les variables `VOICESTUDIO_REMOTE_*`
+(voir `.env.example`), et `pip install -e ".[remote]"` sur le PC.
+
+**Modèle utilisé : Chatterbox Multilingual V3** (MIT, français inclus). **Attention : le projet
+Chatterbox est archivé depuis août 2026**, sans mises à jour. Il reste utilisable ; le moteur est
+isolé derrière l'interface `tts` pour pouvoir en changer. La version V3 n'est pas sur PyPI : on
+l'installe depuis GitHub, à un commit figé.
+
 ## Utilisation
 
 ```bash
@@ -45,8 +69,15 @@ voicestudio devices
 voicestudio record-ref moi --label neutre --device 1     # Entrée pour arrêter
 voicestudio check-ref data/voices/moi/ref_neutre.wav
 voicestudio transcribe mon_clip.mp4 --lang fr --srt mon_clip.srt
-voicestudio say "Bonjour à tous !" --voice femme -o data/output/test.mp3
+voicestudio say "Bonjour à tous !" --voice femme -o data/output/test.mp3   # brouillon Edge
+
+# Avec votre voix clonée (serveur GPU configuré) :
+voicestudio say "Bienvenue à Lisbonne." --voice moi --backend remote
+voicestudio voiceover clip.mp4 script.txt --voice moi --backend remote --ambient 0.2
+voicestudio convert ma_prise.wav --voice moi --backend remote
 ```
+
+`--ambient 0.2` garde le son d'origine de la vidéo en fond discret sous la voix (0 = supprimé).
 
 Les fichiers sont rangés dans `data/` (ignoré par git).
 
@@ -59,11 +90,10 @@ libres : il enregistre en basse qualité et `record-ref` vous en avertira.
 
 1. ✅ **Fondations** : paquet Python, configuration, enregistrement, contrôle qualité,
    Whisper, traduction, sous-titres, tests, CI.
-2. ⏳ **Voix off clonée** : moteur Chatterbox derrière l'interface `tts`, serveur Gradio à
-   déployer sur un Space Hugging Face ou un GPU loué (aucun GPU local nécessaire), commande
-   `voiceover video.mp4 script.txt` (mixage ffmpeg, volume adapté à Instagram).
-3. ⏳ **Confort créatif** : voice-to-voice (garder votre intonation), profils de voix,
-   versions multilingues avec votre voix.
+2. 🟡 **Voix off clonée** : code, serveur, client, mixage ffmpeg et notebook Colab écrits ;
+   plomberie testée avec un faux moteur. **Reste à valider avec le vrai modèle sur GPU.**
+3. ⏳ **Confort créatif** : musique de fond, sous-titres incrustés, versions multilingues
+   avec votre voix, second moteur de secours (le projet Chatterbox n'est plus maintenu).
 4. 💤 **Plus tard** : traducteur temps réel pour réunions.
 
 ## Développement

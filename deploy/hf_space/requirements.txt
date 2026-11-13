@@ -1,0 +1,2 @@
+chatterbox-tts @ git+https://github.com/resemble-ai/chatterbox.git@ab55923c27757c90cfcc407baa57dc25a7d25217
+voicestudio[server] @ git+https://github.com/MaashRees/MyVoiceCloning.git@claude/fervent-babbage-vi3ls9

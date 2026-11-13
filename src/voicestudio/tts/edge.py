@@ -61,6 +61,7 @@ class EdgeTTS:
     name = "edge"
     sends_data_off_machine = True
     supports_cloning = False
+    supports_conversion = False
 
     def synthesize(
         self,
