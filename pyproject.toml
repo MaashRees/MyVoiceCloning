@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voicestudio"
+version = "0.1.0"
+description = "Voix off personnalisée : enregistrement, transcription, traduction et synthèse vocale clonée."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "soundfile>=0.12",
+    "pydantic-settings>=2.2",
+    "typer>=0.12",
+    "openai>=1.40",
+    "edge-tts>=6.1",
+]
+
+[project.optional-dependencies]
+# Micro (nécessite PortAudio ; sous Ubuntu : sudo apt install libportaudio2)
+record = ["sounddevice>=0.4"]
+# Transcription locale (CPU ou GPU)
+# av<17 : faster-whisper 1.2.1 est incompatible avec PyAV 17+ (erreur « metadata_errors »)
+asr = ["faster-whisper>=1.0", "av>=11,<17"]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[project.scripts]
+voicestudio = "voicestudio.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/voicestudio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+# Typer déclare ses options comme valeurs par défaut : c'est son fonctionnement normal.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["typer.Option", "typer.Argument"]
